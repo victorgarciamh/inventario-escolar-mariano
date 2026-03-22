@@ -7,3 +7,4 @@ pillow
 reportlab
 gunicorn
 psycopg2-binary
+boto3
