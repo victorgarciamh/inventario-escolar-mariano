@@ -2,9 +2,13 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from web.extensions import db
 from web.models import Usuario
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta
 import os
 
 auth_bp = Blueprint('auth', __name__)
+
+MAX_INTENTOS = 5
+BLOQUEO_MINUTOS = 15
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -15,15 +19,42 @@ def login():
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
 
+        # Verificar bloqueo
+        intentos     = session.get('login_intentos', 0)
+        bloqueado_en = session.get('login_bloqueado_en')
+
+        if bloqueado_en:
+            bloqueado_en = datetime.fromisoformat(bloqueado_en)
+            if datetime.now() < bloqueado_en + timedelta(minutes=BLOQUEO_MINUTOS):
+                minutos_restantes = int(((bloqueado_en + timedelta(minutes=BLOQUEO_MINUTOS)) - datetime.now()).seconds / 60) + 1
+                flash(f'Demasiados intentos fallidos. Espera {minutos_restantes} minuto(s) para intentar de nuevo.', 'danger')
+                return render_template('auth/login.html')
+            else:
+                # Bloqueo expirado, resetear
+                session.pop('login_intentos', None)
+                session.pop('login_bloqueado_en', None)
+                intentos = 0
+
         usuario = Usuario.query.filter_by(username=username).first()
 
         if usuario and check_password_hash(usuario.password_hash, password):
+            # Login exitoso — limpiar contadores
+            session.pop('login_intentos', None)
+            session.pop('login_bloqueado_en', None)
             session['usuario_id'] = usuario.id
             session['usuario_nombre'] = usuario.nombre
             flash(f'Bienvenida, {usuario.nombre} 👋', 'success')
             return redirect(url_for('inventario.dashboard'))
         else:
-            flash('Usuario o contraseña incorrectos', 'danger')
+            intentos += 1
+            session['login_intentos'] = intentos
+            restantes = MAX_INTENTOS - intentos
+
+            if intentos >= MAX_INTENTOS:
+                session['login_bloqueado_en'] = datetime.now().isoformat()
+                flash(f'Demasiados intentos fallidos. Cuenta bloqueada por {BLOQUEO_MINUTOS} minutos.', 'danger')
+            else:
+                flash(f'Usuario o contraseña incorrectos. Te quedan {restantes} intento(s).', 'danger')
 
     return render_template('auth/login.html')
 
@@ -68,19 +99,3 @@ def logout():
     session.clear()
     flash('Sesión cerrada correctamente', 'success')
     return redirect(url_for('auth.login'))
-
-@auth_bp.route('/crear-admin')
-def crear_admin():
-    """Ruta temporal para crear el usuario directora — eliminar después del primer uso"""
-    existe = Usuario.query.filter_by(username='directora').first()
-    if existe:
-        return 'El usuario ya existe'
-
-    nuevo = Usuario(
-        username='directora',
-        password_hash=generate_password_hash('admin1234'),
-        nombre='Directora'
-    )
-    db.session.add(nuevo)
-    db.session.commit()
-    return 'Usuario directora creado. Contraseña: admin1234'

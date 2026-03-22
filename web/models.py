@@ -25,7 +25,8 @@ class Articulo(db.Model):
 
     # Campos del tarjetón
     tipo_bien = db.Column(db.String(50), default='3-Activo')          # 3-Activo, Consumible, etc.
-    numero_inventario = db.Column(db.String(100), nullable=True)
+    numero_inventario   = db.Column(db.String(100), nullable=True)
+    numero_inventario_2 = db.Column(db.String(100), nullable=True)
     cantidad = db.Column(db.Integer, default=1)
     precio_unitario = db.Column(db.Float, default=0.0)
     tipo_adquisicion = db.Column(db.String(100), nullable=True)       # Gasto operación, Donación, etc.
@@ -53,4 +54,4 @@ class Movimiento(db.Model):
     descripcion = db.Column(db.Text, nullable=True)
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
     realizado_por = db.Column(db.String(100))
-    articulo = db.relationship('Articulo', backref=db.backref('movimientos', cascade='all, delete-orphan'))
+    articulo = db.relationship('Articulo', backref='movimientos')

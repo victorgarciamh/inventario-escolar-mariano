@@ -231,7 +231,13 @@
                     <th style="padding:10px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;text-align:center;width:60px;">Cant.</th>
                     <th style="padding:10px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;text-align:right;width:90px;">P. Unit.</th>
                     <th style="padding:10px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;text-align:right;width:80px;">Total</th>
-                    <th style="padding:10px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;width:120px;">Núm. Inventario</th>
+                    <th style="padding:10px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;width:70px;" colspan="2">
+                        <div style="text-align:center;border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:3px;margin-bottom:3px;">Núm. Inventario</div>
+                        <div style="display:flex;gap:0;">
+                            <span style="flex:1;text-align:center;font-size:9px;opacity:.7;">1</span>
+                            <span style="flex:1;text-align:center;font-size:9px;opacity:.7;border-left:1px solid rgba(255,255,255,.2);">2</span>
+                        </div>
+                    </th>
                     <th style="padding:10px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;width:130px;">Tipo Adquisición</th>
                     <th style="padding:10px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;width:80px;">Estado</th>
                     <th style="padding:10px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;width:120px;">Ubicación</th>
@@ -271,7 +277,8 @@
                     <td style="padding:10px 8px;text-align:right;font-weight:600;font-size:13px;">
                         {% if a.total %}${{ '%.2f'|format(a.total) }}{% else %}—{% endif %}
                     </td>
-                    <td style="padding:10px 8px;font-size:12px;color:var(--text-2);">{{ a.numero_inventario or '—' }}</td>
+                    <td style="padding:10px 8px;font-size:12px;color:var(--text-2);border-right:1px dashed var(--border);">{{ a.numero_inventario or '—' }}</td>
+                    <td style="padding:10px 8px;font-size:12px;color:var(--text-2);">{{ a.numero_inventario_2 or '' }}</td>
                     <td style="padding:10px 8px;font-size:12px;color:var(--text-2);">{{ a.tipo_adquisicion or '—' }}</td>
                     <td style="padding:10px 8px;">
                         <span class="badge {{ 'badge-success' if a.estado == 'Bueno' else 'badge-warning' if a.estado == 'Regular' else 'badge-danger' }}">
@@ -344,8 +351,11 @@
                                oninput="calcTotal(this)">
                     </td>
                     <td style="padding:6px 8px;text-align:right;font-size:12px;color:var(--text-3);" id="preview-total">—</td>
-                    <td style="padding:6px 4px;">
-                        <input type="text" name="numero_inventario" class="form-control" style="padding:6px 8px;font-size:12px;" placeholder="Núm. inventario">
+                    <td style="padding:6px 2px;">
+                        <input type="text" name="numero_inventario" class="form-control" style="padding:6px 6px;font-size:12px;" placeholder="Núm. 1">
+                    </td>
+                    <td style="padding:6px 2px;">
+                        <input type="text" name="numero_inventario_2" class="form-control" style="padding:6px 6px;font-size:12px;" placeholder="Núm. 2">
                     </td>
                     <td style="padding:6px 4px;">
                         <select name="tipo_adquisicion" class="form-control" style="padding:6px 8px;font-size:12px;">
@@ -407,8 +417,8 @@
                     <td style="padding:12px 8px;text-align:right;font-weight:700;font-size:14px;">
                         <span id="pie-monto">${{ '%.2f'|format(articulos | sum(attribute='total')) }}</span>
                     </td>
-                    <td colspan="6" style="padding:12px 8px;color:var(--text-3);font-size:13px;">
-                        {{ articulos|length }} artículos
+                    <td colspan="7" style="padding:12px 8px;color:var(--text-3);font-size:13px;">
+                        {{ articulos|length }} artículos en esta página
                     </td>
                 </tr>
             </tfoot>
@@ -423,6 +433,46 @@
         {% endif %}
 
     </form>
+
+    {% if paginacion and paginacion.pages > 1 %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);background:var(--surface-2);">
+        <span style="font-size:13px;color:var(--text-3);">
+            Página <strong style="color:var(--text-1);">{{ paginacion.page }}</strong>
+            de <strong style="color:var(--text-1);">{{ paginacion.pages }}</strong>
+            — {{ paginacion.total }} artículos en total
+        </span>
+        <div style="display:flex;gap:6px;">
+            {% if paginacion.has_prev %}
+            <a href="{{ url_for('inventario.lista_articulos', pagina=paginacion.prev_num,
+                        ubicacion=filtro_ubicacion, tipo=filtro_tipo,
+                        estado=filtro_estado, categoria=filtro_categoria) }}"
+               class="btn btn-ghost btn-sm">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            {% endif %}
+            {% for num in paginacion.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if num %}
+                <a href="{{ url_for('inventario.lista_articulos', pagina=num,
+                            ubicacion=filtro_ubicacion, tipo=filtro_tipo,
+                            estado=filtro_estado, categoria=filtro_categoria) }}"
+                   class="btn btn-sm {{ 'btn-primary' if num == paginacion.page else 'btn-ghost' }}">
+                    {{ num }}
+                </a>
+                {% else %}
+                <span style="padding:6px 4px;color:var(--text-3);">…</span>
+                {% endif %}
+            {% endfor %}
+            {% if paginacion.has_next %}
+            <a href="{{ url_for('inventario.lista_articulos', pagina=paginacion.next_num,
+                        ubicacion=filtro_ubicacion, tipo=filtro_tipo,
+                        estado=filtro_estado, categoria=filtro_categoria) }}"
+               class="btn btn-ghost btn-sm">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 
 <script>

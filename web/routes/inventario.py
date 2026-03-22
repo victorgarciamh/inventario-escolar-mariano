@@ -93,6 +93,7 @@ def lista_articulos():
         nombre          = request.form.get('nombre', '').strip()
         tipo_bien       = request.form.get('tipo_bien', '3-Activo')
         numero_inv      = request.form.get('numero_inventario', '').strip()
+        numero_inv_2    = request.form.get('numero_inventario_2', '').strip()
         descripcion     = request.form.get('descripcion', '').strip()
         categoria       = request.form.get('categoria', '').strip()
         cantidad        = int(request.form.get('cantidad') or 1)
@@ -117,6 +118,7 @@ def lista_articulos():
             nombre=nombre,
             tipo_bien=tipo_bien,
             numero_inventario=numero_inv,
+            numero_inventario_2=numero_inv_2,
             descripcion=descripcion,
             categoria=categoria,
             cantidad=cantidad,
@@ -157,7 +159,11 @@ def lista_articulos():
     if filtro_tipo:
         query = query.join(Ubicacion).filter(Ubicacion.tipo == filtro_tipo)
 
-    articulos   = query.order_by(Articulo.nombre).all()
+    POR_PAGINA = 34
+    pagina     = request.args.get('pagina', 1, type=int)
+
+    paginacion  = query.order_by(Articulo.nombre).paginate(page=pagina, per_page=POR_PAGINA, error_out=False)
+    articulos   = paginacion.items
     ubicaciones = Ubicacion.query.order_by(Ubicacion.nombre).all()
     salones     = Ubicacion.query.filter_by(tipo='salon').order_by(Ubicacion.nombre).all()
     bodegas     = Ubicacion.query.filter_by(tipo='bodega').order_by(Ubicacion.nombre).all()
@@ -171,6 +177,7 @@ def lista_articulos():
 
     return render_template('inventario/articulos.html',
                            articulos=articulos,
+                           paginacion=paginacion,
                            ubicaciones=ubicaciones,
                            salones=salones,
                            bodegas=bodegas,
@@ -192,7 +199,8 @@ def editar_articulo(id):
     if request.method == 'POST':
         articulo.nombre           = request.form.get('nombre', '').strip()
         articulo.tipo_bien        = request.form.get('tipo_bien', '3-Activo')
-        articulo.numero_inventario= request.form.get('numero_inventario', '').strip()
+        articulo.numero_inventario = request.form.get('numero_inventario', '').strip()
+        articulo.numero_inventario_2 = request.form.get('numero_inventario_2', '').strip()
         articulo.descripcion      = request.form.get('descripcion', '').strip()
         articulo.categoria        = request.form.get('categoria', '').strip()
         articulo.cantidad         = int(request.form.get('cantidad') or 1)
