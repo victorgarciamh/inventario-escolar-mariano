@@ -24,6 +24,22 @@ def create_app():
     def index():
         return redirect(url_for('auth.login'))
 
+    # Ruta para servir fotos desde S3 o local
+    @app.route('/foto/<path:foto_url>')
+    def servir_foto(foto_url):
+        import boto3
+        from flask import redirect as redir, send_from_directory
+        from io import BytesIO
+
+        if foto_url.startswith('s3:'):
+            s3_key      = foto_url[3:]
+            endpoint    = os.environ.get('S3_ENDPOINT')
+            bucket      = os.environ.get('S3_BUCKET_NAME', 'inventario')
+            url_publica = f"{endpoint}/{bucket}/{s3_key}"
+            return redir(url_publica)
+
+        return send_from_directory(app.config['UPLOAD_FOLDER'], foto_url)
+
     # Crear tablas
     with app.app_context():
         db.create_all()

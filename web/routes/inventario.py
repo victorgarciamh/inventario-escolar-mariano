@@ -22,6 +22,59 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'webp'}
 
+def subir_foto(foto, filename):
+    """Sube foto a S3/iDrive e2 o guarda localmente como fallback"""
+    import boto3
+    from io import BytesIO
+
+    endpoint  = os.environ.get('S3_ENDPOINT')
+    key       = os.environ.get('S3_KEY')
+    secret    = os.environ.get('S3_SECRET')
+    bucket    = os.environ.get('S3_BUCKET_NAME', 'inventario')
+    s3_ok     = bool(endpoint and key and secret)
+
+    foto.seek(0)
+    contenido = foto.read()
+    foto.seek(0)
+
+    if s3_ok:
+        try:
+            client = boto3.client('s3',
+                endpoint_url=endpoint,
+                aws_access_key_id=key,
+                aws_secret_access_key=secret,
+                region_name='us-west-1'
+            )
+            s3_key = f"fotos/{filename}"
+            client.upload_fileobj(
+                BytesIO(contenido),
+                bucket,
+                s3_key,
+                ExtraArgs={'ContentType': foto.content_type or 'image/jpeg'}
+            )
+            return f"s3:{s3_key}"  # marcador para saber que está en S3
+        except Exception as e:
+            print(f"Error S3: {e}")
+
+    # Fallback local
+    from flask import current_app
+    os.makedirs(current_app.config['UPLOAD_FOLDER'], exist_ok=True)
+    ruta = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    with open(ruta, 'wb') as f:
+        f.write(contenido)
+    return filename
+
+def url_foto(foto_url):
+    """Devuelve la URL pública de una foto"""
+    if not foto_url:
+        return None
+    if foto_url.startswith('s3:'):
+        s3_key   = foto_url[3:]
+        endpoint = os.environ.get('S3_ENDPOINT', '')
+        bucket   = os.environ.get('S3_BUCKET_NAME', 'inventario')
+        return f"{endpoint}/{bucket}/{s3_key}"
+    return None  # foto local — se sirve desde static
+
 # --- DASHBOARD ---
 @inventario_bp.route('/')
 @require_login
@@ -56,11 +109,9 @@ def lista_articulos():
         if 'foto' in request.files:
             foto = request.files['foto']
             if foto and foto.filename != '' and allowed_file(foto.filename):
-                from flask import current_app
                 filename = secure_filename(
                     f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{foto.filename}")
-                foto.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-                foto_url = filename
+                foto_url = subir_foto(foto, filename)
 
         nuevo = Articulo(
             nombre=nombre,
@@ -153,11 +204,9 @@ def editar_articulo(id):
         if 'foto' in request.files:
             foto = request.files['foto']
             if foto and foto.filename != '' and allowed_file(foto.filename):
-                from flask import current_app
                 filename = secure_filename(
                     f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{foto.filename}")
-                foto.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-                articulo.foto_url = filename
+                articulo.foto_url = subir_foto(foto, filename)
 
         db.session.add(Movimiento(
             articulo_id=articulo.id, tipo='edicion', cantidad=0,
