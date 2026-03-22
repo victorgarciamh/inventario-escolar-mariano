@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block topbar_title %}{{ ubicacion.nombre }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>
+            {{ '🏫' if ubicacion.tipo == 'salon' else '📦' }}
+            {{ ubicacion.nombre }}
+            <span class="badge {{ 'badge-info' if ubicacion.tipo == 'salon' else 'badge-warning' }}" style="font-size:13px;vertical-align:middle;margin-left:8px;">
+                {{ ubicacion.tipo }}
+            </span>
+        </h2>
+        {% if ubicacion.descripcion %}
+        <p>{{ ubicacion.descripcion }}</p>
+        {% else %}
+        <p>{{ articulos|length }} artículos registrados</p>
+        {% endif %}
+    </div>
+    <div style="display:flex;gap:8px;">
+        <a href="{{ url_for('inventario.exportar_pdf', tipo='ubicacion', ubicacion_id=ubicacion.id) }}" target="_blank" class="btn btn-export">
+            <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+        </a>
+        <a href="{{ url_for('inventario.ubicaciones') }}" class="btn btn-ghost">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body-flush">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width:60px;">Foto</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Cantidad</th>
+                    <th>Estado</th>
+                    <th style="width:80px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in articulos %}
+                <tr>
+                    <td>
+                        {% if a.foto_url %}
+                        <img src="{{ url_for('static', filename='uploads/' + a.foto_url) }}" class="article-img">
+                        {% else %}
+                        <div class="article-img-placeholder"><i class="bi bi-image"></i></div>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight:600;">{{ a.nombre }}</td>
+                    <td>
+                        {% if a.categoria %}
+                        <span class="badge badge-purple">{{ a.categoria }}</span>
+                        {% else %}
+                        <span style="color:var(--text-3);">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight:700;font-size:16px;">{{ a.cantidad }}</td>
+                    <td>
+                        <span class="badge {{ 'badge-success' if a.estado == 'Bueno' else 'badge-warning' if a.estado == 'Regular' else 'badge-danger' }}">
+                            {{ a.estado }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('inventario.editar_articulo', id=a.id) }}" class="btn btn-ghost btn-icon btn-sm">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>Sin artículos en esta ubicación</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

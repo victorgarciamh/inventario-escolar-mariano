@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block topbar_title %}Inicio{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <div></div>
+    <a href="{{ url_for('inventario.lista_articulos') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Nuevo artículo
+    </a>
+</div>
+
+<div class="grid-2">
+    <!-- Últimos movimientos -->
+    <div class="card">
+        <div class="card-header">
+            <span><i class="bi bi-clock-history" style="color:var(--accent)"></i> Últimos movimientos</span>
+        </div>
+        <div class="card-body-flush">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Artículo</th>
+                        <th>Tipo</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in ultimos_movimientos %}
+                    <tr>
+                        <td style="font-weight:500;">{{ m.articulo.nombre }}</td>
+                        <td>
+                            <span class="badge {{ 'badge-success' if m.tipo == 'entrada' else 'badge-warning' if m.tipo == 'edicion' else 'badge-danger' }}">
+                                {{ m.tipo }}
+                            </span>
+                        </td>
+                        <td style="color:var(--text-3);font-size:13px;">{{ m.fecha.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3">
+                            <div class="empty-state" style="padding:30px;">
+                                <i class="bi bi-inbox"></i>
+                                <p>Sin movimientos aún</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Acciones y exportar -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-lightning-charge" style="color:var(--warning)"></i> Acciones rápidas</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+                <a href="{{ url_for('inventario.lista_articulos') }}" class="btn btn-primary" style="justify-content:center;">
+                    <i class="bi bi-plus-circle"></i> Agregar artículo
+                </a>
+                <a href="{{ url_for('inventario.lista_articulos') }}" class="btn btn-ghost" style="justify-content:center;">
+                    <i class="bi bi-list-ul"></i> Ver inventario completo
+                </a>
+                <a href="{{ url_for('inventario.ubicaciones') }}" class="btn btn-ghost" style="justify-content:center;">
+                    <i class="bi bi-building"></i> Gestionar ubicaciones
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-file-earmark-pdf" style="color:var(--danger)"></i> Exportar reportes</span>
+            </div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:10px;">
+                <a href="{{ url_for('inventario.exportar_pdf', tipo='general') }}" target="_blank" class="btn btn-export" style="justify-content:center;">
+                    <i class="bi bi-file-earmark-pdf"></i> Inventario general
+                </a>
+                <a href="{{ url_for('inventario.exportar_pdf', tipo='salones') }}" target="_blank" class="btn btn-ghost" style="justify-content:center;">
+                    <i class="bi bi-door-open"></i> Por salones
+                </a>
+                <a href="{{ url_for('inventario.exportar_pdf', tipo='bodegas') }}" target="_blank" class="btn btn-ghost" style="justify-content:center;">
+                    <i class="bi bi-archive-fill"></i> Por bodegas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block topbar_title %}Editar artículo{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Editar artículo</h2>
+        <p>Modifica los datos de «{{ articulo.nombre }}»</p>
+    </div>
+    <a href="{{ url_for('inventario.lista_articulos') }}" class="btn btn-ghost">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="card" style="max-width:820px;">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Nombre *</label>
+                    <input type="text" name="nombre" class="form-control" value="{{ articulo.nombre }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo de bien</label>
+                    <select name="tipo_bien" class="form-select">
+                        <option value="3-Activo"   {{ 'selected' if articulo.tipo_bien == '3-Activo' }}>3-Activo</option>
+                        <option value="Consumible" {{ 'selected' if articulo.tipo_bien == 'Consumible' }}>Consumible</option>
+                        <option value="Resguardo"  {{ 'selected' if articulo.tipo_bien == 'Resguardo' }}>Resguardo</option>
+                        <option value="Otro"       {{ 'selected' if articulo.tipo_bien == 'Otro' }}>Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Número de inventario</label>
+                    <input type="text" name="numero_inventario" class="form-control" value="{{ articulo.numero_inventario or '' }}" placeholder="Ej: 511010074">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Categoría</label>
+                    <input type="text" name="categoria" class="form-control" value="{{ articulo.categoria or '' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cantidad *</label>
+                    <input type="number" name="cantidad" class="form-control" value="{{ articulo.cantidad }}" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Precio unitario ($)</label>
+                    <input type="number" name="precio_unitario" class="form-control"
+                           value="{{ articulo.precio_unitario or '' }}" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo de adquisición</label>
+                    <select name="tipo_adquisicion" class="form-select">
+                        <option value="">— Seleccionar —</option>
+                        <option value="Gasto de operación del IEBEM" {{ 'selected' if articulo.tipo_adquisicion == 'Gasto de operación del IEBEM' }}>Gasto operación IEBEM</option>
+                        <option value="Donación"       {{ 'selected' if articulo.tipo_adquisicion == 'Donación' }}>Donación</option>
+                        <option value="Compra directa" {{ 'selected' if articulo.tipo_adquisicion == 'Compra directa' }}>Compra directa</option>
+                        <option value="Otro"           {{ 'selected' if articulo.tipo_adquisicion == 'Otro' }}>Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select name="estado" class="form-select">
+                        <option value="Bueno"   {{ 'selected' if articulo.estado == 'Bueno' }}>✅ Bueno</option>
+                        <option value="Regular" {{ 'selected' if articulo.estado == 'Regular' }}>⚠️ Regular</option>
+                        <option value="Malo"    {{ 'selected' if articulo.estado == 'Malo' }}>❌ Malo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ubicación</label>
+                <select name="ubicacion_id" class="form-select">
+                    <option value="">Sin ubicación</option>
+                    {% for u in ubicaciones %}
+                    <option value="{{ u.id }}" {{ 'selected' if articulo.ubicacion_id == u.id }}>
+                        {{ '🏫' if u.tipo == 'salon' else '📦' }} {{ u.nombre }} ({{ u.tipo }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea name="descripcion" class="form-control">{{ articulo.descripcion or '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Foto</label>
+                {% if articulo.foto_url %}
+                <div style="margin-bottom:10px;display:flex;align-items:center;gap:12px;">
+                    <img src="{{ url_for('static', filename='uploads/' + articulo.foto_url) }}"
+                         style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid var(--border);">
+                    <span style="font-size:13px;color:var(--text-2);">Foto actual — sube una nueva para reemplazarla</span>
+                </div>
+                {% endif %}
+                <input type="file" name="foto" class="form-control" accept="image/*">
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Guardar cambios
+                </button>
+                <a href="{{ url_for('inventario.lista_articulos') }}" class="btn btn-ghost">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

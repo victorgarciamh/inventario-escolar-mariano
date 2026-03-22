@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block topbar_title %}Ubicaciones{% endblock %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Ubicaciones</h2>
+        <p>Administra salones y bodegas del plantel</p>
+    </div>
+</div>
+
+<div class="grid-2" style="align-items:start;">
+
+    <!-- Formulario nuevo -->
+    <div class="card">
+        <div class="card-header">
+            <span><i class="bi bi-plus-circle" style="color:var(--accent)"></i> Nueva ubicación</span>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('inventario.agregar_ubicacion') }}">
+                <div class="form-group">
+                    <label class="form-label">Nombre *</label>
+                    <input type="text" name="nombre" class="form-control" placeholder="Ej: Salón 1A, Bodega Principal" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tipo *</label>
+                    <select name="tipo" class="form-select">
+                        <option value="salon">🏫 Salón</option>
+                        <option value="bodega">📦 Bodega</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea name="descripcion" class="form-control" rows="2" placeholder="Opcional..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+                    <i class="bi bi-check-lg"></i> Agregar ubicación
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Listados -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Salones -->
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-door-open" style="color:var(--info)"></i> Salones</span>
+                <span class="badge badge-info">{{ salones|length }}</span>
+            </div>
+            <div class="card-body-flush">
+                <table class="data-table">
+                    <tbody>
+                        {% for s in salones %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('inventario.ver_ubicacion', id=s.id) }}"
+                                   style="font-weight:600;color:var(--text-1);text-decoration:none;">
+                                    {{ s.nombre }}
+                                </a>
+                                <br>
+                                <span style="font-size:12px;color:var(--text-3);">{{ s.articulos|length }} artículos</span>
+                            </td>
+                            <td style="width:80px;text-align:right;">
+                                <div style="display:flex;gap:6px;justify-content:flex-end;">
+                                    <a href="{{ url_for('inventario.ver_ubicacion', id=s.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Ver">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('inventario.exportar_pdf', tipo='ubicacion', ubicacion_id=s.id) }}" target="_blank" class="btn btn-icon btn-sm" style="background:rgba(239,68,68,.1);color:var(--danger);border:none;" title="Exportar PDF">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                    <a href="{{ url_for('inventario.eliminar_ubicacion', id=s.id) }}"
+                                       class="btn btn-icon btn-sm" style="background:rgba(239,68,68,.08);color:var(--danger);border:none;"
+                                       onclick="return confirm('¿Eliminar «{{ s.nombre }}»?')" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td><div class="empty-state" style="padding:24px;"><i class="bi bi-door-open"></i><p>Sin salones registrados</p></div></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bodegas -->
+        <div class="card">
+            <div class="card-header">
+                <span><i class="bi bi-archive-fill" style="color:var(--warning)"></i> Bodegas</span>
+                <span class="badge badge-warning">{{ bodegas|length }}</span>
+            </div>
+            <div class="card-body-flush">
+                <table class="data-table">
+                    <tbody>
+                        {% for b in bodegas %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('inventario.ver_ubicacion', id=b.id) }}"
+                                   style="font-weight:600;color:var(--text-1);text-decoration:none;">
+                                    {{ b.nombre }}
+                                </a>
+                                <br>
+                                <span style="font-size:12px;color:var(--text-3);">{{ b.articulos|length }} artículos</span>
+                            </td>
+                            <td style="width:80px;text-align:right;">
+                                <div style="display:flex;gap:6px;justify-content:flex-end;">
+                                    <a href="{{ url_for('inventario.ver_ubicacion', id=b.id) }}" class="btn btn-ghost btn-icon btn-sm" title="Ver">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('inventario.exportar_pdf', tipo='ubicacion', ubicacion_id=b.id) }}" target="_blank" class="btn btn-icon btn-sm" style="background:rgba(239,68,68,.1);color:var(--danger);border:none;" title="Exportar PDF">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+                                    <a href="{{ url_for('inventario.eliminar_ubicacion', id=b.id) }}"
+                                       class="btn btn-icon btn-sm" style="background:rgba(239,68,68,.08);color:var(--danger);border:none;"
+                                       onclick="return confirm('¿Eliminar «{{ b.nombre }}»?')" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td><div class="empty-state" style="padding:24px;"><i class="bi bi-archive"></i><p>Sin bodegas registradas</p></div></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
