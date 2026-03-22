@@ -2,7 +2,8 @@ flask
 flask-sqlalchemy
 python-dotenv
 werkzeug
-python-magic-bin
+python-magic
 pillow
 reportlab
 gunicorn
+psycopg2-binary
