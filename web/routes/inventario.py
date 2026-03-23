@@ -667,20 +667,15 @@ def exportar_pdf_oficial():
         desc = a.nombre
         if a.descripcion:
             desc += f'<br/><font size="6" color="#555555">{a.descripcion[:80]}</font>'
-        # Dividir numero_inventario en dos mitades si es largo
-        num_inv = a.numero_inventario or ''
-        mid = len(num_inv) // 2 if len(num_inv) > 9 else len(num_inv)
-        num1 = num_inv[:mid] if len(num_inv) > 9 else num_inv
-        num2 = num_inv[mid:] if len(num_inv) > 9 else ''
         data.append([
-            Paragraph(a.tipo_bien or '',    cell_c),
-            Paragraph(str(a.cantidad),      cell_c),
-            Paragraph(desc,                 cell_l),
+            Paragraph(a.tipo_bien or '',                cell_c),
+            Paragraph(str(a.cantidad),                  cell_c),
+            Paragraph(desc,                             cell_l),
             Paragraph(f'${a.precio_unitario:,.2f}' if a.precio_unitario else '', cell_r),
             Paragraph(f'${a.total:,.2f}'    if a.total else '',                  cell_r),
-            Paragraph(num1,                 cell_c),
-            Paragraph(num2,                 cell_c),
-            Paragraph(a.tipo_adquisicion or '', cell_l),
+            Paragraph(a.numero_inventario or '',        cell_c),
+            Paragraph(a.numero_inventario_2 or '',      cell_c),
+            Paragraph(a.tipo_adquisicion or '',         cell_l),
         ])
 
     tabla = Table(data, colWidths=col_w, repeatRows=1)

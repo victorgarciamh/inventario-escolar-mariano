@@ -30,8 +30,12 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Número de inventario</label>
+                    <label class="form-label">Número de inventario 1</label>
                     <input type="text" name="numero_inventario" class="form-control" value="{{ articulo.numero_inventario or '' }}" placeholder="Ej: 511010074">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Número de inventario 2</label>
+                    <input type="text" name="numero_inventario_2" class="form-control" value="{{ articulo.numero_inventario_2 or '' }}" placeholder="Segundo número (opcional)">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Categoría</label>
@@ -87,7 +91,7 @@
                 <label class="form-label">Foto</label>
                 {% if articulo.foto_url %}
                 <div style="margin-bottom:10px;display:flex;align-items:center;gap:12px;">
-                    <img src="{{ url_for('static', filename='uploads/' + articulo.foto_url) }}"
+                    <img src="{{ url_for('servir_foto', foto_url=articulo.foto_url) }}"
                          style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid var(--border);">
                     <span style="font-size:13px;color:var(--text-2);">Foto actual — sube una nueva para reemplazarla</span>
                 </div>
