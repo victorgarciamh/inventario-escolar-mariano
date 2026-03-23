@@ -43,7 +43,6 @@ def login():
             session.pop('login_bloqueado_en', None)
             session['usuario_id'] = usuario.id
             session['usuario_nombre'] = usuario.nombre
-            flash(f'Bienvenida, {usuario.nombre} 👋', 'success')
             return redirect(url_for('inventario.dashboard'))
         else:
             intentos += 1
